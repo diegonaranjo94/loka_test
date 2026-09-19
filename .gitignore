@@ -216,3 +216,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- loka poc ---
+poc/data/raw/
+poc/data/bucket_manifest.txt
+poc/outputs/
+AWSCLIV2.pkg
+*/data/
+.pkg
