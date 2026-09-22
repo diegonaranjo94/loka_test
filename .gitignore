@@ -220,7 +220,24 @@ __marimo__/
 # --- loka poc ---
 poc/data/raw/
 poc/data/bucket_manifest.txt
-poc/outputs/
+poc/outputs/*
 AWSCLIV2.pkg
 */data/
 .pkg
+# --- loka poc pipeline ---
+poc/.venv/
+poc/data/raw/
+poc/data/lake/
+poc/data/lake_smoke/
+poc/data/bucket_manifest.txt
+poc/etl/__pycache__/
+poc/tests/__pycache__/
+.pytest_cache/
+AWSCLIV2.pkg
+
+# Generated deliverables that DO belong in the repo (poc/outputs/* is ignored above).
+# EDA artefacts live in eda/ and are tracked normally - nothing to un-ignore.
+!poc/outputs/analytical_query_output.md
+!poc/outputs/run_report.md
+!poc/outputs/dq_checks.csv
+!poc/outputs/analytics_*.csv

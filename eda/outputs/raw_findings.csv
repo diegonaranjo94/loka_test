@@ -1,0 +1,43 @@
+source,check,severity,n_rows,detail
+heart_rate,"duplicate business key ['participant_id', 'timestamp']",error,5767,
+heart_rate,"duplicate (participant, local timestamp)",error,5767,note: naive-vs-Z rows can collide once normalised — check before de-duping
+heart_rate,mixed timestamp formats (naive local vs UTC Z),error,2880,"affected participants: ['P018', 'P044'] — needs offset-aware parse + shift to study TZ UTC-05:00"
+heart_rate,fully duplicated rows,error,589,
+heart_rate,stuck sensor: >= 30 identical consecutive minutes,error,360,2 runs across 2 participants; longest 180 min (3.0 h) @ 60 bpm
+heart_rate,timestamp not on a whole-minute boundary,error,28,"['2026-01-10T13:55:22', '2026-01-14T08:41:20', '2026-01-14T08:42:20', '2026-01-23T12:38:46', '2026-01-23T12:40:46', '2026-01-12T15:01:34', '2026-01-25T16:27:29', '2026-01-25T16:28:29']"
+heart_rate,"`heart_rate_bpm` outside [40,200]",error,4,"offending values: [np.int64(-10), np.int64(999)]"
+sleep_sessions,efficiency_pct disagrees with stage-derived efficiency (>1pp),error,1393,99.5% of sessions; median delta = 11.9 pp
+sleep_sessions,efficiency_pct pinned at exactly 100.0,error,1132,"81% of sessions; corr(reported, stage-derived) = 0.15 → field is saturated/unreliable, derive efficiency from stages[] as the dictionary instructs"
+sleep_sessions,sleep_end != end of last non-awake stage,error,3,"[{'participant_id': 'P026', 'date': '2026-01-23', 'sleep_end': '2026-01-23T19:28:46.000'}, {'participant_id': 'P035', 'date': '2026-01-20', 'sleep_end': '2026-01-20T20:30:03.000'}, {'participant_id': 'P039', 'date': '2026-01-14', 'sleep_end': '2026-01-14T19:38:10.000'}]"
+sleep_stages,duration_min != end_time - start_time,error,4,0.06% of stages; max |delta| = 194.0 min
+sleep_stages,stage durations don't tile the session span,error,4,
+steps,undocumented field(s) in payload,error,120963,"fields=['_unit']; carried by participants ['P005', 'P033', 'P038']"
+steps,unit=steps_per_hour rows on a per-minute grid,error,120963,"participants ['P005', 'P033', 'P038']; 76045/76045 non-zero values are exact multiples of 60 → these are hourly rates mislabelled as per-minute counts; rescale (/60) before any daily sum"
+steps,"duplicate business key ['participant_id', 'timestamp']",error,5767,
+steps,"duplicate (participant, timestamp)",error,5767,"e.g. [{'_dir_participant': 'P005', 'timestamp': '2026-01-10T13:55:22', 'steps': 240}, {'_dir_participant': 'P005', 'timestamp': '2026-01-10T13:55:22', 'steps': 240}, {'_dir_participant': 'P010', 'timestamp': '2026-01-10T00:00:00', 'steps': 0}, {'_dir_participant': 'P010', 'timestamp': '2026-01-10T00:00:00', 'steps': 0}]"
+steps,fully duplicated rows,error,2181,
+steps,timestamp not on a whole-minute boundary,error,28,"['2026-01-10T13:55:22', '2026-01-14T08:41:20', '2026-01-14T08:42:20', '2026-01-23T12:38:46', '2026-01-23T12:40:46', '2026-01-12T15:01:34', '2026-01-25T16:27:29', '2026-01-25T16:28:29']"
+steps,negative step counts,error,2,values [np.int64(-1)]
+steps,physiologically impossible per-minute value (sentinel?),error,2,values [np.int64(1000000)] — no human takes 10k steps in one minute
+wellness_survey,participant_id not in participants.csv,error,14,['P999']
+device_metadata,nulls in `firmware_version`,warn,15,30.0% of rows
+device_metadata,firmware_version blank (recoverable from label),warn,15,30.0% of rows; label yields fw for 15 of them
+heart_rate,participants with != 40 320 rows,warn,8,min=39960 max=40326
+participants,max_heart_rate far from 220-age,warn,12,"[{'participant_id': 'P013', 'age': 59, 'max_heart_rate': 187, 'mhr_offset': 26}, {'participant_id': 'P016', 'age': 25, 'max_heart_rate': 168, 'mhr_offset': -27}, {'participant_id': 'P017', 'age': 37, 'max_heart_rate': 162, 'mhr_offset': -21}, {'participant_id': 'P021', 'age': 55, 'max_heart_rate': 202, 'mhr_offset': 37}, {'participant_id': 'P024', 'age': 51, 'max_heart_rate': 199, 'mhr_offset': 30"
+sleep_sessions,session span outside 2–15 h,warn,3,min=168min max=1328min
+steps,nulls in `_unit`,warn,1893987,94.0% of rows
+steps,"`steps` outside [0,300]",warn,45022,"offending values: [np.int64(-1), np.int64(360), np.int64(420), np.int64(480), np.int64(540), np.int64(600), np.int64(660), np.int64(720), np.int64(780), np.int64(840), np.int64(900), np.int64(960)]"
+steps,participants with != 40 320 rows,warn,8,min=39960 max=40326 (nominal 40320)
+steps,missing minutes inside participant's own range,warn,3,total missing minutes = 1080
+wellness_survey,participants with < 28 survey days,warn,1,missing days total = 14
+device_metadata,calibration_date range,info,50,2025-12-04 00:00:00 → 2026-01-07 00:00:00
+device_metadata,business key ['device_id'] unique,info,0,
+heart_rate,bpm distribution,info,2014950,p01=53 p50=69 p99=125 min=-10 max=999
+participants,n participants,info,50,dictionary says 50
+participants,business key ['participant_id'] unique,info,0,
+sleep_sessions,"business key ['participant_id', 'date'] unique",info,0,
+sleep_sessions,sleep_onset == first stage start,info,0,
+steps,steps distribution,info,2014950,p50=5 p99=660 max=1000000 zeros=35.3%
+wearable_events,all participants have all 3 event files,info,0,
+wellness_survey,date range,info,1414,2026-01-08 → 2026-02-04 (28 distinct days)
+wellness_survey,"business key ['participant_id', 'date'] unique",info,0,

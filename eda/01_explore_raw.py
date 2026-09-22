@@ -1,5 +1,5 @@
 # %% [markdown]
-# # 01 — Raw data exploration (Meridian wearable study)
+# # 01 — Raw data exploration (Loka data engineering test)
 #
 # **Goal of this notebook:** land eyes on every raw source *before* designing any layer or schema.
 # Nothing is cleaned here — this notebook only *profiles* and *flags*. The output is a findings
@@ -58,7 +58,10 @@ RAW = POC / "data" / "raw"
 if (RAW / "data").is_dir() and not (RAW / "participants").is_dir():
     RAW = RAW / "data"
 INTERIM = POC / "data" / "interim"
-OUT = POC / "outputs"
+# EDA artefacts live beside this notebook in eda/, not in poc/outputs,
+# which holds pipeline run artefacts only.
+EDA = POC.parent / "eda"
+OUT = EDA / "outputs"
 INTERIM.mkdir(parents=True, exist_ok=True)
 OUT.mkdir(parents=True, exist_ok=True)
 

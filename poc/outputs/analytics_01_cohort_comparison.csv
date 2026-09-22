@@ -1,0 +1,18 @@
+metric,unit,morning_type_a,evening_type_b,delta_b_minus_a
+Participants,,28.0,22.0,-6.0
+Nights with a valid sleep session,nights,779.0,614.0,-165.0
+Complete participant-days,days,779.0,614.0,-165.0
+Mid-sleep time,h from midnight,2.576,2.508,-0.068
+Sleep onset time,h from midnight,-0.886,-0.897,-0.011
+Total sleep,min,414.5,407.5,-7.0
+Sleep efficiency (stage-derived),%,87.11,87.13,0.02
+Deep sleep,% of sleep,17.67,18.28,0.61
+REM sleep,% of sleep,20.32,20.76,0.44
+Restlessness index,0-1,0.0925,0.0918,-0.001
+Activity midpoint (step-weighted),h of day,14.007,14.002,-0.005
+Daily steps,steps,8884.0,9035.2,151.2
+Active minutes per day,min,932.1,931.8,-0.3
+Resting heart rate (p5),bpm,62.46,62.76,0.3
+Readiness score,0-10,4.87,4.94,0.07
+Sleep quality score,1-5,2.7,2.68,-0.02
+Fatigue score,1-5,2.67,2.66,-0.01

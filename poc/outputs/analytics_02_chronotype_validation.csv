@@ -1,0 +1,5 @@
+chronotype_declared,chronotype_derived,n_participants,mid_sleep_median_min,mid_sleep_median_mean,mid_sleep_median_max,split_threshold_hour,agrees
+A,A,13,2.19,2.406,2.548,2.555,True
+A,B,15,2.557,2.752,3.207,2.555,False
+B,A,12,2.225,2.397,2.553,2.555,False
+B,B,10,2.59,2.742,2.911,2.555,True

@@ -3,9 +3,9 @@
 Profiling of `s3://de-tech-assessment-396587179375-us-east-1-an/data/` as landed in `poc/data/raw/`
 (387 MB, 154 objects: 3 CSV + 150 JSON + `data_dictionary.md`).
 
-Produced by `poc/notebooks/01_explore_raw.ipynb`; machine-readable register in
-`poc/outputs/raw_findings.csv` (21 errors / 10 warnings / 11 passing checks) and per-participant
-coverage in `poc/outputs/coverage_matrix.csv`.
+Produced by `eda/01_explore_raw.ipynb`; machine-readable register in
+`eda/outputs/raw_findings.csv` (21 errors / 10 warnings / 11 passing checks) and per-participant
+coverage in `eda/outputs/coverage_matrix.csv`.
 
 Volumes profiled: 50 participants × 28 days (2026-01-08 → 2026-02-04) — steps 2 014 950 rows,
 heart_rate 2 014 950 rows, sleep 1 400 sessions / 7 000 stages, wellness survey 1 414 rows.
