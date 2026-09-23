@@ -241,3 +241,61 @@ publish, and switching source/target bucket needs no code changes elsewhere.
 There's nothing to look at until the pipeline has run at least once —
 offline or online.
 
+
+## How we worked with AI, and why AGENT.md came last
+
+This repo was built working turn-by-turn with Claude (Cowork), from the
+brief through to this README — exploring the raw data, writing
+Bronze/Silver/Gold, building the notebooks, the architecture diagram, and
+the docs. The working pattern was the same throughout:
+
+- Every explanation, doc, or diagram was grounded in the actual files on
+  disk at the time it was written — `config.py`, the SQL under `poc/sql/`,
+  the `Makefile` — never from memory or from an earlier summary of the repo.
+- When a decision needed defending (why DuckDB for Gold, why the output
+  bucket is deliberately public, why the Silver rules run in a specific
+  order), the answer given was the reasoning and trade-offs, not just the
+  resulting code.
+- Anything irreversible — pushing to `origin`, opening the PR, deleting the
+  CloudFormation stack — was drafted and left for me to run myself.
+
+### Python conventions
+
+Separate from anything project-specific, this is how I have Claude (Cowork)
+write Python for me in general, and it applies to every `.py` file in this
+repo:
+
+- **Write it the Pythonic way** — idiomatic constructs (comprehensions,
+  context managers, `pathlib`, vectorized pandas/numpy operations) over a
+  literal translation from another language's style.
+- **Every important function or class gets a docstring** explaining what it
+  does and, when the logic isn't obvious from the name, how it works — not
+  just a restatement of the signature.
+- **Every function signature is typed**: each parameter has a type
+  annotation, and the return value is annotated too.
+
+You can see this applied throughout `poc/etl/` (`bronze.py`, `silver.py`,
+`gold.py`, `config.py`) and `poc/notebooks/lake_client.py` — e.g.
+`def normalise_timestamps(df: pd.DataFrame, table: str) -> tuple[pd.DataFrame, list[Check]]:`
+in `silver.py`.
+
+### AGENT.md
+
+`AGENT.md` was generated at the very end of this process, after the
+Bronze/Silver/Gold layers, the notebooks, the CloudFormation template and
+this README already existed. It was produced the same way as everything
+else above: by reading the real Makefile targets, the constants in
+`poc/etl/config.py`, `poc/.env.example`, and the SQL files, not written from
+a generic template or guessed from the assessment brief. To be clear about
+the order of events: it did not steer any of the design decisions in this
+repo — it documents them after the fact.
+
+That ordering is deliberate on my part, not incidental. I don't trust an
+`AGENT.md` early in a project, when things are still exploratory and
+genuinely greenfield — the shape of the code is still moving, and locking
+in conventions that early does more harm than good, since the file just
+goes stale or starts steering decisions it shouldn't. I do like generating
+one once a project has picked up a little real structure — layers, naming
+conventions, a Makefile, tests — because at that point there's something
+stable worth encoding, and it saves a future agent (or me) from re-deriving
+decisions that are already settled.
