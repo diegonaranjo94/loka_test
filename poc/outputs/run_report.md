@@ -1,0 +1,84 @@
+# Pipeline run report
+
+- run id: `run_20260922T004952Z`
+- source: `/sessions/rcw-01syte6fuyfstgqmfz6b5jva/mnt/loka_test/poc/data/raw`
+- target: `/sessions/rcw-01syte6fuyfstgqmfz6b5jva/lake_cen`
+- wall clock: 8.8s
+
+## Check summary
+
+| failed assertions | source defects handled | warnings | assertions passed |
+| ---: | ---: | ---: | ---: |
+| 0 | 16 | 3 | 20 |
+
+A *source defect* is a problem found in the export and corrected by a Silver rule - a non-zero count there is the pipeline working. A *failed assertion* is an invariant this pipeline guarantees being violated, and is a bug.
+
+## Rows written
+
+| table | rows |
+| --- | ---: |
+| `bronze_steps` | 2,014,950 |
+| `bronze_heart_rate` | 2,014,950 |
+| `bronze_sleep_sessions` | 1,400 |
+| `bronze_sleep_stages` | 7,000 |
+| `bronze_participants` | 50 |
+| `bronze_device_metadata` | 50 |
+| `bronze_wellness_survey` | 1,414 |
+| `silver_participants` | 50 |
+| `silver_devices` | 50 |
+| `silver_steps_minute` | 2,009,160 |
+| `silver_heart_rate_minute` | 2,009,160 |
+| `silver_sleep_sessions` | 1,393 |
+| `silver_sleep_stages` | 6,965 |
+| `silver_wellness_survey` | 1,400 |
+| `silver_participant_day_coverage` | 1,400 |
+| `gold_participant_devices` | 50 |
+| `gold_daily_participant_metrics` | 1,400 |
+| `gold_weekly_participant_summary` | 250 |
+| `gold_chronotype_cohort_metrics` | 12 |
+
+## Checks
+
+| table                           | rule                           | severity    |   n_affected | detail                                                                                                              | participants                                                                    | run_id               |
+|:--------------------------------|:-------------------------------|:------------|-------------:|:--------------------------------------------------------------------------------------------------------------------|:--------------------------------------------------------------------------------|:---------------------|
+| bronze_steps                    | undocumented_source_field      | error       |            3 | field(s) ['_unit'] are not in the data dictionary; landed verbatim and interpreted in Silver                        | P005, P033, P038                                                                | run_20260922T004952Z |
+| silver_heart_rate_minute        | duplicate_rows_removed         | error       |         5790 | duplicate ('participant_id', 'timestamp') across 12 participant-day(s); kept first-seen                             | P005, P010, P019, P022, P025, P034, P040, P050                                  | run_20260922T004952Z |
+| silver_heart_rate_minute        | stuck_sensor_flagged           | error       |          360 | 2 run(s) of >= 60 identical consecutive minutes; flagged not deleted - the minutes are real, the values are not     | P003, P042                                                                      | run_20260922T004952Z |
+| silver_heart_rate_minute        | timestamp_snapped_to_minute    | error       |           28 | seconds != 00; floored to the minute before de-duplication                                                          | P005, P010, P034, P040, P050                                                    | run_20260922T004952Z |
+| silver_heart_rate_minute        | timezone_normalised            | error       |         2880 | rows exported as Z-suffixed UTC, pulled back to UTC-05:00                                                           | P018, P044                                                                      | run_20260922T004952Z |
+| silver_heart_rate_minute        | value_out_of_domain            | error       |            4 | nulled [-10, 999] (sentinels/impossible values); the minute is kept                                                 | P029, P037                                                                      | run_20260922T004952Z |
+| silver_participant_day_coverage | participant_day_missing        | error       |            4 | no minute-grain data arrived for this participant-day                                                               | P010, P019, P022, P025                                                          | run_20260922T004952Z |
+| silver_participant_day_coverage | participant_day_partial        | error       |            3 | minute grid incomplete (device off / outage); excluded from daily aggregates via is_complete_day                    | P020, P028, P041                                                                | run_20260922T004952Z |
+| silver_sleep_sessions           | sessions_quarantined           | error       |            7 | rejected rather than repaired - the correct value is unknowable                                                     | P007, P010, P024, P026, P035, P039                                              | run_20260922T004952Z |
+| silver_sleep_sessions           | sleep_end_corrupt              | error       |            3 | stated sleep_end disagrees with the last non-awake stage end by > 60s; session quarantined                          | P026, P035, P039                                                                | run_20260922T004952Z |
+| silver_sleep_stages             | stage_duration_mismatch        | error       |            4 | duration_min disagrees with the timestamps on stage(s) ['deep']; whole session quarantined                          | P007, P010, P024, P035                                                          | run_20260922T004952Z |
+| silver_steps_minute             | duplicate_rows_removed         | error       |         5790 | duplicate ('participant_id', 'timestamp') across 12 participant-day(s); kept first-seen                             | P005, P010, P019, P022, P025, P034, P040, P050                                  | run_20260922T004952Z |
+| silver_steps_minute             | timestamp_snapped_to_minute    | error       |           28 | seconds != 00; floored to the minute before de-duplication                                                          | P005, P010, P034, P040, P050                                                    | run_20260922T004952Z |
+| silver_steps_minute             | unit_rescaled                  | error       |       120963 | rows carried an hourly rate on a per-minute grid; divided by 60                                                     | P005, P033, P038                                                                | run_20260922T004952Z |
+| silver_steps_minute             | value_out_of_domain            | error       |            4 | nulled [-1, 1000000] (sentinels/impossible values); the minute is kept                                              | P029, P037                                                                      | run_20260922T004952Z |
+| silver_wellness_survey          | survey_orphan_participant      | error       |           14 | participant_id not in the roster; quarantined, not silently dropped                                                 | P999                                                                            | run_20260922T004952Z |
+| silver_devices                  | firmware_backfilled_from_label | warn        |           15 | firmware_version blank; recovered by regex from device_label                                                        | P006, P008, P015, P016, P021, P022, P027, P031, P032, P039, P040, P041, +3 more | run_20260922T004952Z |
+| silver_sleep_sessions           | source_efficiency_ignored      | warn        |         1132 | 1132/1400 sessions report efficiency_pct exactly 100.0; the field is not used - efficiency is derived from stages[] |                                                                                 | run_20260922T004952Z |
+| silver_steps_minute             | unit_field_nonstandard_name    | warn        |       120963 | unit arrives as `_unit`, not `unit`; resolved by candidate lookup                                                   |                                                                                 | run_20260922T004952Z |
+| gold_chronotype_cohort_metrics  | unique_key                     | assert_pass |            0 | key ('period_type', 'study_week', 'chronotype')                                                                     |                                                                                 | run_20260922T004952Z |
+| gold_daily_participant_metrics  | no_participant_dropped         | assert_pass |            0 | all present                                                                                                         |                                                                                 | run_20260922T004952Z |
+| gold_daily_participant_metrics  | row_count_equals_grid          | assert_pass |            0 | expected 50 participants x 28 days = 1400, got 1400                                                                 |                                                                                 | run_20260922T004952Z |
+| gold_daily_participant_metrics  | unique_key                     | assert_pass |            0 | key ('participant_id', 'date')                                                                                      |                                                                                 | run_20260922T004952Z |
+| gold_participant_devices        | one_row_per_participant        | assert_pass |            0 | expected 50, got 50                                                                                                 |                                                                                 | run_20260922T004952Z |
+| gold_participant_devices        | unique_key                     | assert_pass |            0 | key ('participant_id',)                                                                                             |                                                                                 | run_20260922T004952Z |
+| gold_weekly_participant_summary | unique_key                     | assert_pass |            0 | key ('participant_id', 'study_week')                                                                                |                                                                                 | run_20260922T004952Z |
+| silver_heart_rate_minute        | fk_participant_id              | assert_pass |            0 | every row joins to the roster                                                                                       |                                                                                 | run_20260922T004952Z |
+| silver_heart_rate_minute        | heart_rate_in_range            | assert_pass |            0 | all surviving values within 20-250 bpm                                                                              |                                                                                 | run_20260922T004952Z |
+| silver_heart_rate_minute        | unique_key                     | assert_pass |            0 | key ('participant_id', 'timestamp')                                                                                 |                                                                                 | run_20260922T004952Z |
+| silver_participant_day_coverage | unique_key                     | assert_pass |            0 | key ('participant_id', 'date')                                                                                      |                                                                                 | run_20260922T004952Z |
+| silver_sleep_sessions           | fk_participant_id              | assert_pass |            0 | every row joins to the roster                                                                                       |                                                                                 | run_20260922T004952Z |
+| silver_sleep_sessions           | sleep_efficiency_in_range      | assert_pass |            0 | stage-derived efficiency within 0-100                                                                               |                                                                                 | run_20260922T004952Z |
+| silver_sleep_sessions           | sleep_not_longer_than_bed      | assert_pass |            0 | total_sleep_min <= time_in_bed_min                                                                                  |                                                                                 | run_20260922T004952Z |
+| silver_sleep_sessions           | unique_key                     | assert_pass |            0 | key ('session_key',)                                                                                                |                                                                                 | run_20260922T004952Z |
+| silver_steps_minute             | fk_participant_id              | assert_pass |            0 | every row joins to the roster                                                                                       |                                                                                 | run_20260922T004952Z |
+| silver_steps_minute             | no_implausible_step_minute     | assert_pass |            0 | a minute above 600 steps would mean an hourly rate escaped rescaling                                                |                                                                                 | run_20260922T004952Z |
+| silver_steps_minute             | unique_key                     | assert_pass |            0 | key ('participant_id', 'timestamp')                                                                                 |                                                                                 | run_20260922T004952Z |
+| silver_wellness_survey          | fk_participant_id              | assert_pass |            0 | every row joins to the roster                                                                                       |                                                                                 | run_20260922T004952Z |
+| silver_wellness_survey          | unique_key                     | assert_pass |            0 | key ('participant_id', 'date')                                                                                      |                                                                                 | run_20260922T004952Z |
+| silver_participant_day_coverage | grid_size                      | info        |         1400 | 50 participants x 28 days                                                                                           |                                                                                 | run_20260922T004952Z |
+| silver_participants             | participant_device_one_to_one  | info        |            0 | 50 participants / 50 distinct devices                                                                               |                                                                                 | run_20260922T004952Z |
