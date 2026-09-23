@@ -242,6 +242,35 @@ There's nothing to look at until the pipeline has run at least once —
 offline or online.
 
 
+## Analytical query output
+
+The query-result deliverable lives in [`poc/outputs/analytical_query_output.md`](poc/outputs/analytical_query_output.md)
+— rendered from the four `poc/sql/analytics_*.sql` queries run against the
+Gold layer, the same source `run_report.md` and the analytics CSVs come from.
+Nothing here touches Silver or Bronze directly.
+
+- **`analytics_01_cohort_comparison.sql`** — the required chronotype cohort
+  comparison: morning-type vs. evening-type participants across 16 metrics
+  spanning sleep timing, sleep composition, activity, resting heart rate, and
+  the derived readiness/quality/fatigue scores.
+- **`analytics_02_chronotype_validation.sql`** — checks the declared
+  `chronotype` label against a chronotype *derived* from each participant's
+  own observed mid-sleep time, and reports how often they agree.
+- **`analytics_03_weekly_trend.sql`** — the same cohort comparison broken out
+  week by week across the 4-week study, to see whether the (non-)difference
+  between cohorts holds up over time.
+- **`analytics_04_cohort_effect_size.sql`** — formal significance testing
+  (Cohen's d, Welch's t-test) on whether chronotype actually separates the
+  two cohorts on any metric, collapsed to one row per participant so 1,393
+  nights aren't miscounted as 1,393 independent observations.
+
+The headline finding: declared chronotype doesn't correspond to anything
+observable in this dataset — a chronotype derived from actual sleep timing
+agrees with the declared label for only 46% of participants, and no metric
+separates the cohorts at a meaningful effect size. `analytical_query_output.md`
+treats that as a finding about the data, not a pipeline defect, and says so
+explicitly.
+
 ## How we worked with AI, and why AGENT.md came last
 
 This repo was built working turn-by-turn with Claude (Cowork), from the
