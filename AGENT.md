@@ -66,7 +66,8 @@ interview setting. Behave accordingly:
     │   └── output-bucket.yaml   # CloudFormation: public, time-boxed POC output bucket
     ├── notebooks/
     │   ├── lake_client.py        # LAKE_SOURCE = "local"|"s3" toggle + list/load/describe helpers
-    │   └── explore_lake.py/.ipynb
+    │   ├── explore_lake.py/.ipynb  # guided walk through the layers
+    │   └── sample_lake.py/.ipynb   # SELECT * ... LIMIT 10 for every published table
     ├── scripts/
     │   └── pull_data.sh          # aws s3 sync raw export -> poc/data/raw
     └── tests/
@@ -147,8 +148,11 @@ on top of the cleaned Silver tables.
 `lake_client.py` exposes one toggle — `LAKE_SOURCE = "local" | "s3"` — which
 drives `config.load_settings(online=...)`. `list_tables()`, `load_table()`,
 and `describe()` wrap the existing `io_uri` module; there is no separate IO
-path for notebooks. `explore_lake.py` is written in jupytext `# %%` cell-marker
-style and mirrors to `explore_lake.ipynb`.
+path for notebooks. `explore_lake.py` and `sample_lake.py` are written in
+jupytext `# %%` cell-marker style and mirror to their `.ipynb` — edit the
+`.py`, then regenerate the notebook. `sample_lake` ends with a coverage cell
+that compares the tables it sampled against `list_tables()`; when the
+pipeline publishes a new table, add a cell for it there.
 
 ## 7. What NOT to do
 

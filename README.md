@@ -39,7 +39,7 @@ against S3 with `--online`. Setup below.
     ├── .env                  # URIs + AWS settings for this machine (see Requirements)
     ├── .env.example           # template — copy to .env and fill in
     ├── scripts/pull_data.sh   # sync the raw export from S3 -> poc/data/raw
-    ├── notebooks/             # browse Bronze/Silver/Gold in a notebook (local or S3)
+    ├── notebooks/             # explore_lake + sample_lake notebooks (local or S3)
     ├── infra/output-bucket.yaml  # CloudFormation for the output S3 bucket (see below)
     ├── etl/                   # the pipeline package
     │   ├── config.py          # settings, study constants, defect-rule constants
@@ -218,16 +218,24 @@ worth using whenever the output actually matters, not just in CI.
 
 ## Browse the lake
 
-`poc/notebooks/` has a small notebook for looking at whatever the pipeline
-has published — Bronze, Silver, Gold, quarantine, and the data-quality
-checks — without re-running anything.
+`poc/notebooks/` has two notebooks for looking at whatever the pipeline
+has published, without re-running anything:
+
+- **`explore_lake.ipynb`** — a guided walk through the layers: lineage in
+  Bronze, the flag columns in Silver, the quarantine reasons, the four Gold
+  tables, the data-quality log, and a couple of ad-hoc DuckDB queries.
+- **`sample_lake.ipynb`** — one query per published table (all 26: Bronze,
+  Silver, Gold, the Gold analytics results, quarantine and `dq_checks`),
+  each returning the first 10 rows (`SAMPLE_ROWS`) with a one-line note on
+  what the table is. The last cell checks every published table was
+  sampled, so a table added to the pipeline later can't be silently missed.
 
 ```bash
 source .venv/bin/activate        # or: make activate
-jupyter lab poc/notebooks/explore_lake.ipynb
+jupyter lab poc/notebooks/explore_lake.ipynb   # or sample_lake.ipynb
 ```
 
-Where it reads from is one constant in `poc/notebooks/lake_client.py`:
+Where both read from is one constant in `poc/notebooks/lake_client.py`:
 
 ```python
 LAKE_SOURCE = "local"   # poc/data/lake — the offline mirror, no AWS
