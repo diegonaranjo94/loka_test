@@ -241,3 +241,6 @@ AWSCLIV2.pkg
 !poc/outputs/run_report.md
 !poc/outputs/dq_checks.csv
 !poc/outputs/analytics_*.csv
+
+# MCP side project: last pushed image tag (written by poc/scripts/deploy_mcp.sh)
+poc/infra/.mcp-image-tag
