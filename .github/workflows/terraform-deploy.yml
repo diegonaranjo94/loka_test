@@ -1,0 +1,47 @@
+name: terraform-deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "infra/**"
+      - ".github/workflows/terraform-deploy.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: tf-deploy-dev
+  cancel-in-progress: false
+
+env:
+  TF_VERSION: 1.14.5
+  TF_DIR: infra/envs/dev
+
+jobs:
+  apply:
+    runs-on: ubuntu-latest
+    environment: dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_APPLY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Init
+        run: terraform -chdir=$TF_DIR init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: Plan
+        run: terraform -chdir=$TF_DIR plan -input=false -lock-timeout=5m -var-file=dev.tfvars -out=tfplan
+
+      - name: Apply
+        run: terraform -chdir=$TF_DIR apply -input=false tfplan

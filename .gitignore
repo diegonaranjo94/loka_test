@@ -241,3 +241,10 @@ AWSCLIV2.pkg
 !poc/outputs/run_report.md
 !poc/outputs/dq_checks.csv
 !poc/outputs/analytics_*.csv
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
