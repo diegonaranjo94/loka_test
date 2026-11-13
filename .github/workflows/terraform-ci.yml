@@ -1,0 +1,60 @@
+name: terraform-ci
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  id-token: write
+  pull-requests: write
+
+concurrency:
+  group: tf-ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  TF_VERSION: 1.14.5
+  TF_DIR: infra/envs/dev
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+          terraform_wrapper: false
+
+      - name: Format
+        run: terraform fmt -check -recursive infra
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_PLAN_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Init
+        run: terraform -chdir=$TF_DIR init -input=false -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: Validate
+        run: terraform -chdir=$TF_DIR validate
+
+      - name: Plan
+        run: |
+          terraform -chdir=$TF_DIR plan -input=false -no-color -lock-timeout=5m \
+            -var-file=dev.tfvars -out=tfplan
+          {
+            echo "### Terraform plan — dev"
+            echo '```'
+            terraform -chdir=$TF_DIR show -no-color tfplan | head -c 60000
+            echo '```'
+          } > plan.md
+
+      - name: Comment plan on PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: terraform-dev
+          path: plan.md

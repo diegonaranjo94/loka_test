@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: >-
+  POC ONLY - public S3 bucket with 30-day object expiry.
+  Anyone on the internet can list and download everything in this bucket.
+  Not for participant-level data.
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: loka-test-poc
+    Description: Name prefix. Account + region are appended for global uniqueness.
+
+  RetentionDays:
+    Type: Number
+    Default: 30
+    MinValue: 1
+    Description: Objects are deleted this many days after creation.
+
+Resources:
+  PublicBucket:
+    Type: AWS::S3::Bucket
+    # Delete (the default) so a POC teardown is one command. The stack delete
+    # fails if the bucket still has objects - see the teardown note in chat.
+    DeletionPolicy: Delete
+    Properties:
+      BucketName: !Sub "${ProjectName}-${AWS::AccountId}-${AWS::Region}"
+
+      # All four blocks OFF - required for the anonymous policy below to take
+      # effect. This is the setting that makes the bucket public.
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+      # ACLs stay disabled: public access comes from the bucket policy, which is
+      # the modern mechanism. Nothing simpler is gained by re-enabling ACLs.
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+
+      # No versioning, so expiry is a real delete rather than a delete marker
+      # with a hidden version underneath still costing storage.
+      LifecycleConfiguration:
+        Rules:
+          - Id: expire-all-objects
+            Status: Enabled
+            ExpirationInDays: !Ref RetentionDays
+
+      Tags:
+        - { Key: Project, Value: !Ref ProjectName }
+        - { Key: Purpose, Value: poc }
+        - { Key: PublicAccess, Value: "true" }
+        - { Key: ManagedBy, Value: cloudformation }
+
+  PublicBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref PublicBucket
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublicListAndDownload
+            Effect: Allow
+            Principal: "*"
+            Action:
+              - s3:GetObject      # download any object
+              - s3:ListBucket     # enumerate the bucket
+            Resource:
+              - !GetAtt PublicBucket.Arn        # ListBucket acts on the bucket
+              - !Sub "${PublicBucket.Arn}/*"    # GetObject acts on objects
+
+Outputs:
+  BucketName:
+    Value: !Ref PublicBucket
+
+  BucketUri:
+    Description: s3:// URI for the pipeline to write to.
+    Value: !Sub "s3://${PublicBucket}/"
+
+  PublicDownloadUrlBase:
+    Description: Append an object key to download it anonymously.
+    Value: !Sub "https://${PublicBucket.RegionalDomainName}/"
+
+  PublicListUrl:
+    Description: Anonymous bucket listing (XML).
+    Value: !Sub "https://${PublicBucket.RegionalDomainName}/?list-type=2"
